@@ -1,0 +1,34 @@
+<view class="container" wx:if="{{detail}}">
+  <view class="card">
+    <view class="task-hero">
+      <view class="card-title">{{detail.title}}</view>
+      <view class="card-sub">{{detail.storeName || '全街区'}}</view>
+      <view class="reward-badge">完成奖励 {{detail.rewardValue}} 积分</view>
+      <view class="tag status-tag">{{detail.statusText}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text class="label">参与时间</text><text class="value">{{detail.joinedAt}}</text></view>
+    <view class="row" wx:if="{{detail.completedAt}}"><text class="label">完成时间</text><text class="value">{{detail.completedAt}}</text></view>
+    <view class="row" wx:if="{{detail.description}}"><text class="label">任务说明</text><text class="value">{{detail.description}}</text></view>
+  </view>
+
+  <!-- 进行中：展示任务核销码与二维码，待商户完成验证 -->
+  <view class="card" wx:if="{{detail.taskCode}}">
+    <view class="card-title">任务核销码</view>
+    <view class="card-sub">到店出示以下核销码或二维码，由店员输入完成验证，完成后积分自动发放</view>
+    <view class="code-text">{{detail.taskCode}}</view>
+    <canvas canvas-id="taskCanvas" class="qr-canvas"></canvas>
+  </view>
+
+  <!-- 已完成：展示奖励结果 -->
+  <view class="card" wx:if="{{detail.taskStatus === 'COMPLETED'}}">
+    <view class="card-title">奖励结果</view>
+    <view class="reward-result">
+      <text class="reward-points">+{{detail.rewardValue}}</text>
+      <text class="reward-unit">积分</text>
+    </view>
+    <view class="card-sub" style="text-align:center;">{{detail.rewardIssued ? '积分已发放至账户，可在"我的"页面查看' : ''}}</view>
+  </view>
+</view>

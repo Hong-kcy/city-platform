@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="card">
+    <image class="cover" src="{{street.cover}}" mode="aspectFill"></image>
+    <view class="card-title" style="margin-top: 20rpx;">{{street.name}}</view>
+    <view class="card-sub">{{street.introduction}}</view>
+  </view>
+
+  <view class="switch">
+    <view class="switch-item {{view === 'list' ? 'active' : ''}}" data-view="list" bindtap="switchView">列表</view>
+    <view class="switch-item {{view === 'map' ? 'active' : ''}}" data-view="map" bindtap="switchView">地图</view>
+  </view>
+
+  <view wx:if="{{view === 'list'}}">
+    <view wx:if="{{pois.length === 0}}" class="empty">暂无 POI</view>
+    <view
+      wx:for="{{pois}}"
+      wx:key="id"
+      class="card poi-card"
+      bindtap="tapPoi"
+      data-id="{{item.id}}"
+      data-store-id="{{item.storeId}}"
+      data-name="{{item.name}}"
+    >
+      <view class="poi-head">
+        <view class="card-title">{{item.name}}</view>
+        <text class="tag">{{item.poiType}}</text>
+      </view>
+      <view class="card-sub">{{item.description}}</view>
+      <view wx:if="{{item.storeName}}" class="card-sub">门店：{{item.storeName}}（{{item.storeBusinessStatus}}）</view>
+    </view>
+  </view>
+
+  <view wx:if="{{view === 'map'}}" class="map">
+    <view
+      wx:for="{{mapPois}}"
+      wx:key="id"
+      class="poi-node"
+      style="left:{{item.left}};top:{{item.top}};"
+      bindtap="tapPoi"
+      data-id="{{item.id}}"
+      data-store-id="{{item.storeId}}"
+      data-name="{{item.name}}"
+    >
+      <view class="dot"></view>
+      <view class="dot-name">{{item.name}}</view>
+    </view>
+  </view>
+</view>

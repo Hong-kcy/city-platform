@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="route-entry card" bindtap="openRoutes">
+    <view class="route-entry-icon">途</view>
+    <view class="info">
+      <view class="card-title">主题体验路线</view>
+      <view class="card-sub">闺蜜出片 / 社恐友好 / 亲子放电 / 周末慢逛</view>
+    </view>
+  </view>
+
+  <view class="entry-row">
+    <view class="entry-card card" bindtap="openCoupons">
+      <view class="route-entry-icon coupon-icon">券</view>
+      <view class="info">
+        <view class="card-title">优惠券</view>
+        <view class="card-sub">商户优惠 · 到店核销</view>
+      </view>
+    </view>
+    <view class="entry-card card" bindtap="openTasks">
+      <view class="route-entry-icon task-icon">务</view>
+      <view class="info">
+        <view class="card-title">任务</view>
+        <view class="card-sub">到店打卡 · 赚积分</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{cards.length > 0}}" class="rec-section">
+    <view class="section-title">今日去哪</view>
+    <view
+      wx:for="{{cards}}"
+      wx:key="id"
+      class="card rec-card"
+      bindtap="openRecommendation"
+      data-index="{{index}}"
+    >
+      <image wx:if="{{item.cover}}" class="rec-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="info">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-sub">{{item.subtitle}}</view>
+        <view class="rec-reason">{{item.reason}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{streetAreas.length === 0}}" class="empty">暂无街区数据</view>
+
+  <view
+    wx:for="{{streetAreas}}"
+    wx:key="id"
+    class="card street-card"
+    bindtap="openStreet"
+    data-id="{{item.id}}"
+  >
+    <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+    <view class="info">
+      <view class="card-title">{{item.name}}</view>
+      <view class="card-sub">点击进入街区地图与店铺</view>
+    </view>
+  </view>
+</view>

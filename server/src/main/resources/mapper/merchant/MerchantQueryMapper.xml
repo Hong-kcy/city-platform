@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.MerchantQueryMapper">
+
+    <select id="selectById"
+            resultType="com.cityplatform.merchant.application.readmodel.MerchantReadModel">
+        SELECT m.id, m.name, m.type, m.contact_person, m.contact_phone, m.introduction,
+               m.logo_file_id,
+               COALESCE(sf.url, '/static/default-logo.svg') AS logo_url,
+               m.status, m.created_at, m.updated_at
+        FROM merchant m
+        LEFT JOIN stored_file sf ON m.logo_file_id = sf.id
+        WHERE m.id=#{id}
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.merchant.application.readmodel.MerchantSummary">
+        SELECT m.id, m.name, m.type, m.status,
+               COALESCE(sf.url, '/static/default-logo.svg') AS logo_url
+        FROM merchant m
+        LEFT JOIN stored_file sf ON m.logo_file_id = sf.id
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND m.name LIKE CONCAT(#{query.name}, '%')
+            </if>
+            <if test="query.type != null and query.type != ''">
+                AND m.type = #{query.type}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND m.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY m.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM merchant m
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND m.name LIKE CONCAT(#{query.name}, '%')
+            </if>
+            <if test="query.type != null and query.type != ''">
+                AND m.type = #{query.type}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND m.status = #{query.status}
+            </if>
+        </where>
+    </select>
+</mapper>

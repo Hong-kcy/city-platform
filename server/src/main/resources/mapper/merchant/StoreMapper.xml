@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.StoreMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.merchant.domain.Store"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO store (merchant_id, name, address, longitude, latitude, phone,
+                           business_hours, cover_image_file_id, business_status, status,
+                           created_at, updated_at)
+        VALUES (#{merchantId}, #{name}, #{address}, #{longitude}, #{latitude}, #{phone},
+                #{businessHours}, #{coverImageFileId}, #{businessStatus}, #{status},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.merchant.domain.Store">
+        UPDATE store
+        SET name=#{name},
+            address=#{address},
+            longitude=#{longitude},
+            latitude=#{latitude},
+            phone=#{phone},
+            business_hours=#{businessHours},
+            cover_image_file_id=#{coverImageFileId},
+            business_status=#{businessStatus},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.merchant.domain.Store">
+        SELECT id, merchant_id, name, address, longitude, latitude, phone,
+               business_hours, cover_image_file_id, business_status, status,
+               created_at, updated_at
+        FROM store
+        WHERE id=#{id}
+    </select>
+</mapper>

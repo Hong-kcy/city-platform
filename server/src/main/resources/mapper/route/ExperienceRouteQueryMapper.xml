@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.route.infrastructure.mapper.ExperienceRouteQueryMapper">
+
+    <sql id="summaryColumns">
+        r.id, r.street_area_id, sa.name AS street_area_name,
+        r.name, r.theme, r.estimated_duration, r.status,
+        (SELECT COUNT(*) FROM experience_route_item i WHERE i.route_id = r.id) AS poi_count
+    </sql>
+
+    <sql id="summaryJoins">
+        FROM experience_route r
+        LEFT JOIN street_area sa ON r.street_area_id = sa.id
+    </sql>
+
+    <sql id="queryFilter">
+        <where>
+            <if test="query.streetAreaId != null">
+                AND r.street_area_id = #{query.streetAreaId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND r.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.theme != null and query.theme != ''">
+                AND r.theme = #{query.theme}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND r.status = #{query.status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectSummaryById"
+            resultType="com.cityplatform.route.application.readmodel.ExperienceRouteSummary">
+        SELECT
+        <include refid="summaryColumns"/>
+        <include refid="summaryJoins"/>
+        WHERE r.id=#{id}
+    </select>
+
+    <!-- 路线本体（items 由独立查询组装，见 selectItemsByRouteId） -->
+    <select id="selectDetailById"
+            resultType="com.cityplatform.route.application.readmodel.ExperienceRouteDetailReadModel">
+        SELECT r.id, r.street_area_id, sa.name AS street_area_name,
+               r.name, r.theme, r.description, r.estimated_duration, r.status,
+               r.created_at, r.updated_at,
+               (SELECT COUNT(*) FROM experience_route_item i WHERE i.route_id = r.id) AS poi_count
+        FROM experience_route r
+        LEFT JOIN street_area sa ON r.street_area_id = sa.id
+        WHERE r.id=#{id}
+    </select>
+
+    <!-- 路线 POI 列表：单条 JOIN 一次取回全部 item 及 Store 展示信息（无 N+1） -->
+    <select id="selectItemsByRouteId"
+            resultType="com.cityplatform.route.application.readmodel.RoutePOIReadModel">
+        SELECT i.sequence, i.recommendation_reason,
+               p.id AS poi_id, p.name AS poi_name, p.poi_type AS poi_type,
+               p.status AS poi_status, p.description AS poi_description,
+               p.longitude, p.latitude,
+               s.id AS store_id, s.name AS store_name,
+               s.business_status AS store_business_status,
+               CASE WHEN s.id IS NULL THEN NULL
+                    ELSE COALESCE(sf.url, '/static/default-cover.svg')
+               END AS store_cover_image_url
+        FROM experience_route_item i
+        JOIN poi p ON i.poi_id = p.id
+        LEFT JOIN store s ON p.store_id = s.id
+        LEFT JOIN stored_file sf ON s.cover_image_file_id = sf.id
+        WHERE i.route_id=#{routeId}
+        ORDER BY i.sequence ASC
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.route.application.readmodel.ExperienceRouteSummary">
+        SELECT
+        <include refid="summaryColumns"/>
+        <include refid="summaryJoins"/>
+        <include refid="queryFilter"/>
+        ORDER BY r.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM experience_route r
+        <include refid="queryFilter"/>
+    </select>
+</mapper>

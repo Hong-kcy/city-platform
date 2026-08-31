@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.street.infrastructure.mapper.POIQueryMapper">
+
+    <!-- 详情聚合：STORE 类型 POI 直接带出 Store 展示摘要，跨域只读依赖 Merchant.store -->
+    <select id="selectById"
+            resultType="com.cityplatform.street.application.readmodel.POIReadModel">
+        SELECT p.id, p.street_area_id, sa.name AS street_area_name,
+               p.name, p.poi_type, p.store_id, p.longitude, p.latitude,
+               p.description, p.status, p.created_at, p.updated_at,
+               s.name AS store_name, s.business_status AS store_business_status,
+               CASE WHEN s.id IS NULL THEN NULL
+                    ELSE COALESCE(sf.url, '/static/default-cover.svg')
+               END AS store_cover_image_url
+        FROM poi p
+        JOIN street_area sa ON p.street_area_id = sa.id
+        LEFT JOIN store s ON p.store_id = s.id
+        LEFT JOIN stored_file sf ON s.cover_image_file_id = sf.id
+        WHERE p.id=#{id}
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.street.application.readmodel.POISummary">
+        SELECT p.id, p.street_area_id, sa.name AS street_area_name,
+               p.name, p.poi_type, p.status
+        FROM poi p
+        JOIN street_area sa ON p.street_area_id = sa.id
+        <where>
+            <if test="query.streetAreaId != null">
+                AND p.street_area_id = #{query.streetAreaId}
+            </if>
+            <if test="query.poiType != null and query.poiType != ''">
+                AND p.poi_type = #{query.poiType}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND p.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY p.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM poi p
+        <where>
+            <if test="query.streetAreaId != null">
+                AND p.street_area_id = #{query.streetAreaId}
+            </if>
+            <if test="query.poiType != null and query.poiType != ''">
+                AND p.poi_type = #{query.poiType}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND p.status = #{query.status}
+            </if>
+        </where>
+    </select>
+</mapper>

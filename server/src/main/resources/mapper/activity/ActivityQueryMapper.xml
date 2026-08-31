@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.activity.infrastructure.mapper.ActivityQueryMapper">
+
+    <sql id="summaryColumns">
+        a.id, a.street_area_id, sa.name AS street_area_name,
+        a.title, a.summary,
+        COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+        a.activity_type, a.start_time, a.end_time, a.status
+    </sql>
+
+    <sql id="summaryJoins">
+        FROM activity a
+        LEFT JOIN street_area sa ON a.street_area_id = sa.id
+        LEFT JOIN stored_file sf ON a.cover_file_id = sf.id
+    </sql>
+
+    <sql id="queryFilter">
+        <where>
+            <if test="query.streetAreaId != null">
+                AND a.street_area_id = #{query.streetAreaId}
+            </if>
+            <if test="query.activityType != null and query.activityType != ''">
+                AND a.activity_type = #{query.activityType}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND a.status = #{query.status}
+            </if>
+            <if test="query.startTimeFrom != null">
+                AND a.start_time &gt;= #{query.startTimeFrom}
+            </if>
+            <if test="query.startTimeTo != null">
+                AND a.start_time &lt;= #{query.startTimeTo}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectById"
+            resultType="com.cityplatform.activity.application.readmodel.ActivitySummary">
+        SELECT
+        <include refid="summaryColumns"/>
+        <include refid="summaryJoins"/>
+        WHERE a.id=#{id}
+    </select>
+
+    <!-- 跨域聚合：活动本体 + 街区摘要 + POI 摘要 + 封面URL（订阅状态由 Application 层补充） -->
+    <select id="selectDetailById"
+            resultType="com.cityplatform.activity.application.readmodel.ActivityDetailReadModel">
+        SELECT a.id, a.street_area_id, sa.name AS street_area_name,
+               a.title, a.summary, a.description, a.cover_file_id,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               a.activity_type, a.start_time, a.end_time, a.location,
+               a.poi_id, p.name AS poi_name, p.poi_type AS poi_type,
+               a.status, a.created_at, a.updated_at
+        FROM activity a
+        LEFT JOIN street_area sa ON a.street_area_id = sa.id
+        LEFT JOIN stored_file sf ON a.cover_file_id = sf.id
+        LEFT JOIN poi p ON a.poi_id = p.id
+        WHERE a.id=#{id}
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.activity.application.readmodel.ActivitySummary">
+        SELECT
+        <include refid="summaryColumns"/>
+        <include refid="summaryJoins"/>
+        <include refid="queryFilter"/>
+        ORDER BY a.start_time DESC, a.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM activity a
+        <include refid="queryFilter"/>
+    </select>
+</mapper>

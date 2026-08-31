@@ -1,0 +1,48 @@
+.row {
+  display: flex;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+}
+
+.label {
+  width: 140rpx;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.value {
+  flex: 1;
+  color: #333;
+}
+
+.coupon-hero {
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.discount {
+  color: #e67e22;
+  font-size: 48rpx;
+  font-weight: 700;
+  margin-bottom: 16rpx;
+}
+
+.code-text {
+  text-align: center;
+  font-size: 44rpx;
+  font-weight: 700;
+  letter-spacing: 8rpx;
+  color: #222;
+  margin: 24rpx 0;
+}
+
+.qr-canvas {
+  width: 360rpx;
+  height: 360rpx;
+  margin: 0 auto;
+  display: block;
+}
+
+.action {
+  margin-top: 12rpx;
+}

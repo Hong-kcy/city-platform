@@ -1,0 +1,29 @@
+<view class="container" wx:if="{{detail}}">
+  <view class="card detail-card">
+    <image class="cover" src="{{detail.cover}}" mode="aspectFill"></image>
+    <view class="body">
+      <view class="tag-row">
+        <text class="tag">{{detail.typeText}}</text>
+        <text class="tag">{{detail.status}}</text>
+      </view>
+      <view class="card-title">{{detail.title}}</view>
+      <view class="card-sub">{{detail.summary}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text class="label">地点</text><text class="value">{{detail.location || detail.poiName || detail.streetAreaName}}</text></view>
+    <view class="row"><text class="label">开始</text><text class="value">{{detail.startTime}}</text></view>
+    <view class="row"><text class="label">结束</text><text class="value">{{detail.endTime}}</text></view>
+    <view class="row"><text class="label">所属街区</text><text class="value">{{detail.streetAreaName}}</text></view>
+  </view>
+
+  <view class="card" wx:if="{{detail.description}}">
+    <view class="card-title">活动介绍</view>
+    <view class="desc">{{detail.description}}</view>
+  </view>
+
+  <view class="action">
+    <button class="btn-primary" bindtap="toggleSub">{{subscribed ? '取消想去' : '想去'}}</button>
+  </view>
+</view>

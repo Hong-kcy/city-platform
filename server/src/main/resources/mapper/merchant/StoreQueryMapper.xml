@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.StoreQueryMapper">
+
+    <select id="selectById"
+            resultType="com.cityplatform.merchant.application.readmodel.StoreReadModel">
+        SELECT s.id, s.merchant_id, m.name AS merchant_name, s.name, s.address,
+               s.longitude, s.latitude, s.phone, s.business_hours,
+               s.cover_image_file_id,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               s.business_status, s.status, s.created_at, s.updated_at
+        FROM store s
+        JOIN merchant m ON s.merchant_id = m.id
+        LEFT JOIN stored_file sf ON s.cover_image_file_id = sf.id
+        WHERE s.id=#{id}
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.merchant.application.readmodel.StoreSummary">
+        SELECT s.id, s.merchant_id, m.name AS merchant_name, s.name, s.address,
+               s.business_status, s.status
+        FROM store s
+        JOIN merchant m ON s.merchant_id = m.id
+        <where>
+            <if test="query.merchantId != null">
+                AND s.merchant_id = #{query.merchantId}
+            </if>
+            <if test="query.businessStatus != null and query.businessStatus != ''">
+                AND s.business_status = #{query.businessStatus}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND s.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY s.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM store s
+        <where>
+            <if test="query.merchantId != null">
+                AND s.merchant_id = #{query.merchantId}
+            </if>
+            <if test="query.businessStatus != null and query.businessStatus != ''">
+                AND s.business_status = #{query.businessStatus}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND s.status = #{query.status}
+            </if>
+        </where>
+    </select>
+</mapper>

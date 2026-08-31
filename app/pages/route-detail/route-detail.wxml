@@ -1,0 +1,29 @@
+<view class="container" wx:if="{{route}}">
+  <view class="card head-card">
+    <view class="tag-row">
+      <text class="tag">{{route.themeText}}</text>
+      <text class="tag">{{route.streetAreaName}}</text>
+    </view>
+    <view class="card-title">{{route.name}}</view>
+    <view class="card-sub">{{route.durationText}} · 共{{route.poiCount}}站</view>
+    <view wx:if="{{route.description}}" class="desc">{{route.description}}</view>
+  </view>
+
+  <view class="card poi-card" wx:for="{{items}}" wx:key="poiId"
+        bindtap="tapItem" data-store-id="{{item.storeId}}" data-poi-name="{{item.poiName}}">
+    <view class="poi-row">
+      <view class="seq">{{item.sequence}}</view>
+      <image wx:if="{{item.storeCover}}" class="poi-cover" src="{{item.storeCover}}" mode="aspectFill"></image>
+      <view class="poi-info">
+        <view class="poi-name">
+          {{item.poiName}}
+          <text class="poi-type">{{item.poiTypeText}}</text>
+        </view>
+        <view wx:if="{{item.storeName}}" class="card-sub">{{item.storeName}}</view>
+        <view wx:if="{{item.recommendationReason}}" class="reason">{{item.recommendationReason}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{items.length === 0}}" class="empty">该路线暂未配置打卡点</view>
+</view>

@@ -1,0 +1,110 @@
+.route-entry {
+  display: flex;
+  align-items: center;
+}
+
+.route-entry-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: #16a085;
+  color: #fff;
+  font-size: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.street-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.cover {
+  width: 100%;
+  height: 320rpx;
+  display: block;
+  background: #eee;
+}
+
+.info {
+  padding: 24rpx;
+}
+
+.entry-row {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.entry-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.entry-card .route-entry-icon {
+  width: 72rpx;
+  height: 72rpx;
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.entry-card .info {
+  padding: 0;
+  min-width: 0;
+}
+
+.entry-card .card-title {
+  font-size: 28rpx;
+}
+
+.entry-card .card-sub {
+  font-size: 22rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coupon-icon {
+  background: #e67e22;
+}
+
+.task-icon {
+  background: #2980b9;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+  margin: 8rpx 0 16rpx;
+}
+
+.rec-card {
+  display: flex;
+  align-items: center;
+}
+
+.rec-cover {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+.rec-card .info {
+  padding: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.rec-reason {
+  font-size: 24rpx;
+  color: #e67e22;
+  margin-top: 8rpx;
+}

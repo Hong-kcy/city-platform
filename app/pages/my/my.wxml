@@ -1,0 +1,56 @@
+<view class="container">
+  <block wx:if="{{loggedIn && user}}">
+    <view class="card profile">
+      <image wx:if="{{user.avatar}}" class="avatar" src="{{user.avatar}}" mode="aspectFill"></image>
+      <view wx:else class="avatar placeholder">旅</view>
+      <view class="profile-info">
+        <view class="card-title">{{user.nickname || '未设置昵称'}}</view>
+        <view class="card-sub">积分：{{user.points}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="row">
+        <text class="label">昵称</text>
+        <input class="input" value="{{editNickname}}" placeholder="输入昵称" bindinput="onNicknameInput" />
+      </view>
+      <button class="btn-primary" size="mini" bindtap="saveProfile">保存资料</button>
+    </view>
+
+    <view class="card">
+      <view class="switch-row">
+        <text>活动提醒</text>
+        <switch checked="{{user.activityReminderEnabled}}" bindchange="onReminderChange" />
+      </view>
+      <view class="switch-row">
+        <text>系统通知</text>
+        <switch checked="{{user.systemNotificationEnabled}}" bindchange="onNotificationChange" />
+      </view>
+    </view>
+
+    <view class="card menu" bindtap="goMyActivities">
+      <text>我的活动</text>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="card menu" bindtap="goMyCoupons">
+      <text>我的优惠券</text>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="card menu" bindtap="goMyTasks">
+      <text>我的任务</text>
+      <text class="arrow">›</text>
+    </view>
+
+    <button class="logout" bindtap="logout">退出登录</button>
+  </block>
+
+  <block wx:else>
+    <view class="card">
+      <view class="card-title">未登录</view>
+      <view class="card-sub">登录后可订阅活动、查看我的活动</view>
+      <button class="btn-primary" style="margin-top: 20rpx;" bindtap="login">微信登录</button>
+    </view>
+  </block>
+</view>

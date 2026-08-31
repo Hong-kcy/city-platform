@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="head">
+    <text class="head-title">街区任务</text>
+    <text class="head-link" bindtap="goMyTasks">我的任务 ›</text>
+  </view>
+
+  <view wx:if="{{tasks.length === 0}}" class="empty">暂无可参与的任务</view>
+
+  <view
+    wx:for="{{tasks}}"
+    wx:key="id"
+    class="card task-card"
+    bindtap="openDetail"
+    data-id="{{item.id}}"
+  >
+    <view class="task-body">
+      <view class="card-title">{{item.title}}</view>
+      <view class="card-sub">{{item.storeName || '全街区'}}</view>
+      <view class="card-sub">{{item.startAt}} ~ {{item.endAt}}</view>
+    </view>
+    <view class="reward">
+      <view class="reward-value">{{item.rewardValue}}</view>
+      <view class="reward-label">积分</view>
+    </view>
+  </view>
+</view>

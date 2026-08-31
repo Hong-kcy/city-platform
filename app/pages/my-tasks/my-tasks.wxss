@@ -1,0 +1,37 @@
+.task-card {
+  display: flex;
+  align-items: center;
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.right {
+  flex-shrink: 0;
+  text-align: center;
+  margin-left: 16rpx;
+}
+
+.status {
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  padding: 6rpx 14rpx;
+}
+
+.status-ongoing {
+  color: #16a085;
+  background: #eef7f5;
+}
+
+.status-done {
+  color: #999;
+  background: #f2f2f2;
+}
+
+.reward-mini {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #e67e22;
+}

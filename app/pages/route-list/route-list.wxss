@@ -1,0 +1,11 @@
+.route-card {
+  padding: 28rpx;
+}
+
+.tag-row {
+  margin-bottom: 12rpx;
+}
+
+.card-sub {
+  margin-top: 12rpx;
+}

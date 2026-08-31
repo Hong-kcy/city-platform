@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.UserCouponQueryMapper">
+
+    <!-- 注意：JOIN 后所有列必须带表别名；核销码不进列表查询，仅详情暴露 -->
+    <sql id="summaryColumns">
+        uc.id, uc.coupon_id, c.name, c.discount_text, c.description,
+        c.valid_from, c.valid_to, uc.status, uc.created_at AS claimed_at,
+        st.name AS store_name, m.name AS merchant_name
+    </sql>
+
+    <select id="selectByUserIdAndCouponId" resultType="com.cityplatform.merchant.application.readmodel.UserCouponSummary">
+        SELECT <include refid="summaryColumns"/>
+        FROM user_coupon uc
+        JOIN coupon c ON uc.coupon_id = c.id
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        WHERE uc.user_id=#{userId} AND uc.coupon_id=#{couponId}
+    </select>
+
+    <select id="selectMyCoupons" resultType="com.cityplatform.merchant.application.readmodel.UserCouponSummary">
+        SELECT <include refid="summaryColumns"/>
+        FROM user_coupon uc
+        JOIN coupon c ON uc.coupon_id = c.id
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        WHERE uc.user_id=#{userId}
+        ORDER BY uc.created_at DESC, uc.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="countMyCoupons" resultType="long">
+        SELECT COUNT(*)
+        FROM user_coupon uc
+        WHERE uc.user_id=#{userId}
+    </select>
+
+    <select id="selectMyCouponDetail" resultType="com.cityplatform.merchant.application.readmodel.UserCouponDetailReadModel">
+        SELECT uc.id, uc.coupon_id, c.name, c.discount_text, c.description,
+               c.valid_from, c.valid_to, uc.status, uc.created_at AS claimed_at,
+               uc.redeem_code, uc.redeemed_at,
+               st.name AS store_name, m.name AS merchant_name
+        FROM user_coupon uc
+        JOIN coupon c ON uc.coupon_id = c.id
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        WHERE uc.user_id=#{userId} AND uc.id=#{userCouponId}
+    </select>
+</mapper>

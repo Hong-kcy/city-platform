@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.street.infrastructure.mapper.StreetMapQueryMapper">
+
+    <!-- 街区信息：仅 ACTIVE 街区可见 -->
+    <select id="selectStreetAreaForMap"
+            resultType="com.cityplatform.street.application.readmodel.StreetMapReadModel">
+        SELECT sa.id, sa.name, sa.introduction,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               sa.longitude, sa.latitude
+        FROM street_area sa
+        LEFT JOIN stored_file sf ON sa.cover_image_file_id = sf.id
+        WHERE sa.id=#{streetAreaId} AND sa.status='ACTIVE'
+    </select>
+
+    <!-- POI 列表：仅 ACTIVE POI 可见，跨域 LEFT JOIN store 获取门店展示信息 -->
+    <!-- 跨域只读依赖: Merchant.store -->
+    <select id="selectMapPOIs"
+            resultType="com.cityplatform.street.application.readmodel.MapPOIItem">
+        SELECT p.id, p.name, p.poi_type, p.longitude, p.latitude, p.description,
+               p.store_id, s.name AS store_name, s.business_status AS store_business_status,
+               COALESCE(sf.url, '/static/default-cover.svg') AS store_cover_image_url
+        FROM poi p
+        LEFT JOIN store s ON p.store_id = s.id AND s.status='ACTIVE'
+        LEFT JOIN stored_file sf ON s.cover_image_file_id = sf.id
+        WHERE p.street_area_id=#{streetAreaId} AND p.status='ACTIVE'
+        ORDER BY p.id ASC
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.MerchantMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.merchant.domain.Merchant"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO merchant (name, type, contact_person, contact_phone, introduction,
+                              logo_file_id, status, created_at, updated_at)
+        VALUES (#{name}, #{type}, #{contactPerson}, #{contactPhone}, #{introduction},
+                #{logoFileId}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.merchant.domain.Merchant">
+        UPDATE merchant
+        SET name=#{name},
+            type=#{type},
+            contact_person=#{contactPerson},
+            contact_phone=#{contactPhone},
+            introduction=#{introduction},
+            logo_file_id=#{logoFileId},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.merchant.domain.Merchant">
+        SELECT id, name, type, contact_person, contact_phone, introduction,
+               logo_file_id, status, created_at, updated_at
+        FROM merchant
+        WHERE id=#{id}
+    </select>
+</mapper>

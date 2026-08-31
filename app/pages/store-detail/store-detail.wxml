@@ -1,0 +1,18 @@
+<view class="container" wx:if="{{store}}">
+  <view class="card detail-card">
+    <image class="cover" src="{{store.cover}}" mode="aspectFill"></image>
+    <view class="card-title" style="margin-top: 20rpx;">{{store.name}}</view>
+    <view class="tag-row">
+      <text class="tag">{{store.businessStatus}}</text>
+      <text class="tag">{{store.status}}</text>
+    </view>
+    <view class="card-sub">所属商户：{{store.merchantName}}</view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text class="label">地址</text><text class="value">{{store.address}}</text></view>
+    <view class="row"><text class="label">电话</text><text class="value">{{store.phone || '—'}}</text></view>
+    <view class="row"><text class="label">营业时间</text><text class="value">{{store.businessHours || '—'}}</text></view>
+    <view class="row"><text class="label">经纬度</text><text class="value">{{store.longitude}}, {{store.latitude}}</text></view>
+  </view>
+</view>

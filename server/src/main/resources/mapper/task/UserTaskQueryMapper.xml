@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.task.infrastructure.mapper.UserTaskQueryMapper">
+
+    <!-- 注意：JOIN 后所有列必须带表别名；task_code 不进列表查询，仅详情暴露 -->
+    <sql id="summaryColumns">
+        ut.id, ut.task_id, t.title, t.description, t.reward_type, t.reward_value,
+        ut.status AS task_status, ut.created_at AS joined_at,
+        ut.completed_at, ut.reward_issued,
+        st.name AS store_name,
+        CASE WHEN t.status != 'ACTIVE' THEN t.status
+             WHEN NOW() &lt; t.start_at THEN 'PENDING'
+             WHEN NOW() &gt; t.end_at THEN 'ENDED'
+             ELSE 'ACTIVE' END AS task_effective_status
+    </sql>
+
+    <select id="selectMyStatus" resultType="string">
+        SELECT ut.status
+        FROM user_task ut
+        WHERE ut.user_id=#{userId} AND ut.task_id=#{taskId}
+    </select>
+
+    <select id="selectMyTasks" resultType="com.cityplatform.task.application.readmodel.UserTaskSummary">
+        SELECT <include refid="summaryColumns"/>
+        FROM user_task ut
+        JOIN task t ON ut.task_id = t.id
+        LEFT JOIN store st ON t.store_id = st.id
+        WHERE ut.user_id=#{userId}
+        ORDER BY ut.created_at DESC, ut.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="countMyTasks" resultType="long">
+        SELECT COUNT(*)
+        FROM user_task ut
+        WHERE ut.user_id=#{userId}
+    </select>
+
+    <select id="selectMyTaskDetail" resultType="com.cityplatform.task.application.readmodel.UserTaskDetailReadModel">
+        SELECT ut.id, ut.task_id, t.title, t.description, t.reward_type, t.reward_value,
+               ut.status AS task_status, ut.created_at AS joined_at,
+               ut.completed_at, ut.reward_issued, ut.task_code,
+               st.name AS store_name,
+               CASE WHEN t.status != 'ACTIVE' THEN t.status
+                    WHEN NOW() &lt; t.start_at THEN 'PENDING'
+                    WHEN NOW() &gt; t.end_at THEN 'ENDED'
+                    ELSE 'ACTIVE' END AS task_effective_status
+        FROM user_task ut
+        JOIN task t ON ut.task_id = t.id
+        LEFT JOIN store st ON t.store_id = st.id
+        WHERE ut.user_id=#{userId} AND ut.id=#{userTaskId}
+    </select>
+</mapper>

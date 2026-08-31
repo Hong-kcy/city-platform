@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: city-platform
+  datasource:
+    # 本地真实凭证见根目录 1/application.yml.local.bak（该目录不入库）；
+    # 通过环境变量 DB_USERNAME / DB_PASSWORD 注入，仓库内只保留配置格式
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:city_platform}?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USERNAME:root}
+    password: "${DB_PASSWORD:}"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 数据库 migration 由 Flyway 接管：V1 建表 / V2 种子数据，只执行一次
+  # 后续 schema 变更一律新增 V3__xxx.sql，禁止手改已发布的 migration 文件
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  mvc:
+    static-path-pattern: /static/**
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+
+# 微信小程序配置(服务端持有 AppSecret，绝不下发前端/硬编码/提交真实密钥)
+# 本地开发无真实凭证时保留占位，登录接口将返回明确的业务错误
+wechat:
+  mini-program:
+    app-id: ${WECHAT_MINI_APP_ID:}
+    app-secret: ${WECHAT_MINI_APP_SECRET:}
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+logging:
+  level:
+    com.cityplatform: INFO
+    org.springframework.web: INFO

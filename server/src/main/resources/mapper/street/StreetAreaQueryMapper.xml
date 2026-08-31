@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.street.infrastructure.mapper.StreetAreaQueryMapper">
+
+    <select id="selectById"
+            resultType="com.cityplatform.street.application.readmodel.StreetAreaReadModel">
+        SELECT sa.id, sa.name, sa.introduction, sa.cover_image_file_id,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               sa.longitude, sa.latitude, sa.status, sa.created_at, sa.updated_at
+        FROM street_area sa
+        LEFT JOIN stored_file sf ON sa.cover_image_file_id = sf.id
+        WHERE sa.id=#{id}
+    </select>
+
+    <select id="selectAll"
+            resultType="com.cityplatform.street.application.readmodel.StreetAreaSummary">
+        SELECT sa.id, sa.name,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               sa.status
+        FROM street_area sa
+        LEFT JOIN stored_file sf ON sa.cover_image_file_id = sf.id
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND sa.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND sa.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY sa.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM street_area sa
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND sa.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND sa.status = #{query.status}
+            </if>
+        </where>
+    </select>
+</mapper>

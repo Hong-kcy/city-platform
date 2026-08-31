@@ -1,0 +1,19 @@
+<view class="container">
+  <view wx:if="{{activities.length === 0}}" class="empty">暂无活动</view>
+
+  <view
+    wx:for="{{activities}}"
+    wx:key="id"
+    class="card activity-card"
+    bindtap="openDetail"
+    data-id="{{item.id}}"
+  >
+    <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+    <view class="info">
+      <view class="tag-row"><text class="tag">{{item.typeText}}</text></view>
+      <view class="card-title">{{item.title}}</view>
+      <view class="card-sub">{{item.summary}}</view>
+      <view class="card-sub time">{{item.startTime}}</view>
+    </view>
+  </view>
+</view>

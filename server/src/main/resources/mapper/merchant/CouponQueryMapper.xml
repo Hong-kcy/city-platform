@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.merchant.infrastructure.mapper.CouponQueryMapper">
+
+    <sql id="baseColumns">
+        c.id, c.merchant_id, c.store_id, c.name, c.description, c.discount_text,
+        c.valid_from, c.valid_to, c.status,
+        st.name AS store_name, m.name AS merchant_name
+    </sql>
+
+    <select id="selectById" resultType="com.cityplatform.merchant.application.readmodel.CouponSummary">
+        SELECT <include refid="baseColumns"/>
+        FROM coupon c
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        WHERE c.id=#{id}
+    </select>
+
+    <select id="selectDetailById" resultType="com.cityplatform.merchant.application.readmodel.CouponDetailReadModel">
+        SELECT <include refid="baseColumns"/>
+        FROM coupon c
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        WHERE c.id=#{id}
+    </select>
+
+    <select id="selectAll" resultType="com.cityplatform.merchant.application.readmodel.CouponSummary">
+        SELECT <include refid="baseColumns"/>
+        FROM coupon c
+        LEFT JOIN store st ON c.store_id = st.id
+        LEFT JOIN merchant m ON c.merchant_id = m.id
+        <where>
+            <if test="query.storeId != null">AND c.store_id = #{query.storeId}</if>
+            <if test="query.merchantId != null">AND c.merchant_id = #{query.merchantId}</if>
+            <if test="query.status != null and query.status != ''">AND c.status = #{query.status}</if>
+        </where>
+        ORDER BY c.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM coupon c
+        <where>
+            <if test="query.storeId != null">AND c.store_id = #{query.storeId}</if>
+            <if test="query.merchantId != null">AND c.merchant_id = #{query.merchantId}</if>
+            <if test="query.status != null and query.status != ''">AND c.status = #{query.status}</if>
+        </where>
+    </select>
+</mapper>

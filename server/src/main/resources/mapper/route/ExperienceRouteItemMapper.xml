@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.route.infrastructure.mapper.ExperienceRouteItemMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.route.domain.ExperienceRouteItem"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO experience_route_item (route_id, poi_id, sequence, recommendation_reason,
+                                           created_at, updated_at)
+        VALUES (#{routeId}, #{poiId}, #{sequence}, #{recommendationReason},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.route.domain.ExperienceRouteItem">
+        UPDATE experience_route_item
+        SET route_id=#{routeId},
+            poi_id=#{poiId},
+            sequence=#{sequence},
+            recommendation_reason=#{recommendationReason},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM experience_route_item
+        WHERE id=#{id}
+    </delete>
+
+    <select id="selectByRouteIdOrderBySequence"
+            resultType="com.cityplatform.route.domain.ExperienceRouteItem">
+        SELECT id, route_id, poi_id, sequence, recommendation_reason, created_at, updated_at
+        FROM experience_route_item
+        WHERE route_id=#{routeId}
+        ORDER BY sequence ASC
+    </select>
+
+    <select id="selectByRouteIdAndPoiId"
+            resultType="com.cityplatform.route.domain.ExperienceRouteItem">
+        SELECT id, route_id, poi_id, sequence, recommendation_reason, created_at, updated_at
+        FROM experience_route_item
+        WHERE route_id=#{routeId}
+          AND poi_id=#{poiId}
+    </select>
+
+    <!-- 批量顺序调整中间态：整体偏移避开 UNIQUE(route_id, sequence) 现有区间 -->
+    <update id="shiftSequence">
+        UPDATE experience_route_item
+        SET sequence = sequence + #{offset},
+            updated_at = NOW()
+        WHERE route_id=#{routeId}
+    </update>
+</mapper>

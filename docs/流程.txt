@@ -1,0 +1,792 @@
+第一大阶段：Demo MVP——跑通完整产品闭环
+阶段目标
+
+使用尽可能低的技术复杂度，完成一个可以实际运行、可以展示、可以验证产品逻辑和商业闭环的 Demo。
+
+Demo 阶段重点验证：
+
+真实街区空间 → 商户与活动 → 用户发现 → 主题路线 → 基础推荐 → 到店任务/优惠 → 消费闭环
+
+本阶段暂不追求完整的城市级地图能力、实时数据能力或完整智能化能力。
+
+Demo 阶段明确不提前引入
+高德、百度等第三方地图 SDK
+城市级实时定位
+城市级导航
+GeoHash、空间索引等复杂地理基础设施
+Redis、实时数据流
+传感器数据
+3DGS
+完整 AR
+复杂推荐算法
+
+真实 POI 的 latitude / longitude 继续保留，为后续真实空间能力提供数据基础。
+
+文件结构：city-platform/
+├── server/                  # Spring Boot 后端
+│   ├── src/
+│   ├── pom.xml
+│   ├── uploads/
+│   ├── settings.xml
+│   └── ...
+│
+├── app/                    # 微信小程序，承担用户端
+│   ├── pages/
+│   ├── components/
+│   ├── services/
+│   ├── utils/
+│   ├── app.js
+│   ├── app.json
+│   └── project.config.json
+│
+├── admin/                  # Web 管理端，同时承担商户端 + 运营端
+│   ├── src/
+│   ├── package.json
+│   └── ...
+│
+└── docs/                   # 规范文档
+    ├── requirements/
+    ├── architecture/
+    └── development/
+任何用户端页面只能进入 app/；任何商户/运营管理页面只能进入 admin/；任何业务 API、Domain、Repository、Infrastructure 只能进入 server/。
+
+
+
+
+1. 基础数据与空间底座
+1.1 Merchant —— 商户基础信息
+
+目标：建立商业内容来源。
+
+开发内容：
+
+商户入驻
+商户基础信息 CRUD
+门店 CRUD
+商户/门店状态管理
+门店营业状态管理
+商户类型管理（商户类型采用静态枚举 FOOD / RETAIL / ENTERTAINMENT / SERVICE / OTHER，Demo 阶段不作为可运营字典维护，不建 merchant_type 表，不提供类型 CRUD）
+商户 Logo、门店图片上传（统一走 POST /api/files，业务域不处理 MultipartFile）
+
+前端：
+
+商户端web：基础登录与信息录入
+用户端微信小程序：商户/门店列表
+店铺详情页
+
+实现要求：
+
+遵循 Merchant Domain 自身职责
+文件通过 StorageService / StoredFile 管理
+不在 Merchant Domain 直接处理文件存储实现
+查询使用 ReadModel，避免跨域实体直接暴露
+1.2 Street —— 街区与 POI 空间骨架
+
+目标：建立承载所有业务内容的真实街区空间模型。
+
+开发内容：
+
+StreetArea 街区
+POI 兴趣点
+POI 与 Store 的弱关联
+街区与 POI 状态管理
+地图展示聚合查询
+街区 → POI → Store 展示信息聚合
+
+前端：
+
+使用固定真实街区数据或预制空间数据
+空间底座原则
+用户端微信小程序:
+完成 2D 空间展示
+展示 POI / 店铺位置
+点击 POI 查看店铺详情
+支持地图 / 列表两种查看方式
+
+
+Demo 阶段：
+
+Street Domain
+    ↓
+真实街区 POI 数据
+    ↓
+2D 空间展示
+
+不接入实时地图 SDK。
+
+地图 SDK 属于未来的 Platform / Infrastructure 能力，不进入 Street Domain。
+
+本阶段不做
+附近搜索
+城市级导航
+实时定位
+GeoHash
+空间索引
+动态热力
+喧闹指数
+3DGS
+全景
+1.3 Storage —— 文件存储
+
+目标：支撑商户图片等基础内容。
+
+开发内容：
+
+StoredFile
+StorageService
+Local Storage
+文件上传 / 下载
+URL 查询
+
+当前只使用本地存储。
+
+未来可以替换：
+
+Local Storage
+→ COS / OSS / MinIO
+
+业务域无需修改。
+
+上传文件通过 /uploads/** 静态资源映射对外可访问（浏览器 / 小程序可直接请求返回的 URL）。
+
+1.4 第一阶段基础闭环
+
+完成基础数据与空间底座后，第一阶段只需保证以下两个闭环跑通，不再扩大范围：
+
+闭环一：商业内容与空间展示
+
+Merchant
+  ↓
+Store
+  ↓
+StreetArea
+  ↓
+POI
+  ↓
+2D 空间展示
+  ↓
+点击 POI
+  ↓
+Store 展示 / 详情
+
+闭环二：文件存储
+
+StoredFile
+  ↓
+上传（POST /api/files）
+  ↓
+URL
+  ↓
+商户 Web 与微信小程序均可访问
+小程序正式环境访问后端 API、图片资源时，需要 HTTPS 与微信平台配置的合法域名；开发阶段可使用微信开发者工具的开发环境能力进行联调。
+在此之外暂不实现：高德 / 百度 SDK、定位、附近搜索、城市级导航、3DGS、全景、AR、动态热力、Crowd 实时数据。
+
+2. User + Activity —— 用户与活动内容
+2.1 User
+
+目标：建立用户身份，为后续订阅、积分、推荐提供基础。
+
+开发内容微信小程序：
+
+微信登录
+用户基础信息
+用户基础画像
+消息偏好
+基础积分字段/能力预留
+
+微信 SDK 必须通过 Infrastructure 中的 WechatClient 封装，业务层不得直接依赖 SDK。
+
+2.2 Activity
+
+目标：让街区开始拥有动态内容。
+
+开发内容：
+用户端微信小程序：
+活动详情
+活动列表
+用户“想去”
+用户自己的活动订阅
+商户 Web：
+活动创建、修改、下线
+
+
+
+
+跨域流程由 Application 层协调：
+
+User
+  ↓
+Activity
+  ↓
+Subscription
+
+消息发送统一通过 MessageService，Activity 不直接关心微信订阅消息、小程序站内消息等发送渠道。
+
+3. ExperienceRoute —— 主题体验路线
+
+目标：验证平台区别于普通“店铺列表”的核心产品能力。
+
+初期不接 AI，由运营人员手动配置主题路线。
+
+例如：
+
+闺蜜出片半日游
+社恐友好一人食路线
+亲子放电计划
+周末慢逛路线
+
+开发内容：
+
+ExperienceRoute CRUD
+Route 与 POI 关联
+POI 顺序管理
+路线主题、描述、预计时长
+路线详情
+用户查看路线中的 POI
+核心边界
+
+ExperienceRoute 回答：
+
+用户应该去哪里、为什么去。
+
+因此：
+
+ExperienceRoute
+    ↓
+POI A
+POI B
+POI C
+
+而不负责实际导航。
+
+与空间展示解耦
+
+ExperienceRoute 只引用 POI，不关心 POI 的具体展示方式。
+
+未来同一条路线可以同时包含：
+
+2D POI
+3DGS POI
+Panorama POI
+Video POI
+
+展示层根据空间体验类型决定如何呈现。
+
+4. Task / Coupon —— 基础商业闭环
+
+目标：让 Demo 不只是“展示平台”，而是具备最基础的消费闭环。
+
+开发内容：
+
+优惠券发布
+用户领取优惠券
+用户优惠券列表
+二维码生成
+核销
+基础到店任务
+任务完成状态
+基础奖励
+用户端优惠券/任务功能运行于微信小程序。
+商户核销端运行于 Web 管理后台。
+Demo 阶段优先采用“核销码手动输入”方式；可兼容扫码枪作为键盘输入设备。
+不要求 Web 商户后台调用手机摄像头扫描用户二维码。
+
+Task 保持独立生命周期：
+
+Activity
+Recommendation
+Operation
+Merchant
+    ↓
+生成 / 创建 Task
+    ↓
+Task 独立运行
+
+不要把 Task 直接写死在 Activity 或 Recommendation 中。
+
+5. Recommendation —— Demo 级“今日去哪”
+
+目标：让 Demo 具备真正的“决策入口”。
+
+本阶段不使用大模型，不追求复杂推荐算法。
+
+先实现 Rule-based Recommendation。
+
+推荐候选可以考虑：
+
+用户基础兴趣
+当前时间
+活动
+POI 类型
+路线主题
+营业状态
+基础空间距离
+
+生成：
+
+今日去哪
+├── 推荐卡片 A
+├── 推荐卡片 B
+└── 推荐卡片 C
+
+Recommendation Domain 负责：
+
+推荐策略
+推荐候选
+推荐排序基础规则
+推荐结果生成
+
+Recommendation 只生成建议，不直接修改商户、活动、任务等业务状态。
+
+跨域查询由 Application 层负责聚合，最终返回：
+
+RecommendationCard
+StoreSummary
+ActivityDetail
+StreetOverview
+
+等 ReadModel。
+
+6. Demo MVP 最终验收标准
+用户侧(微信小程序)
+
+用户能够：
+
+打开平台
+→ 查看街区
+→ 发现商户
+→ 查看店铺
+→ 查看活动
+→ 订阅活动
+→ 查看主题路线
+→ 浏览路线中的 POI
+→ 获得优惠/任务
+→ 完成基础消费闭环
+
+首页能够展示：
+
+今日去哪
+
+但推荐由规则驱动。
+
+商户侧(Web 管理后台)
+
+商户能够：
+
+登录
+→ 管理商户/门店
+→ 上传图片
+→ 发布活动
+→ 发布优惠/任务
+→ 查看基础业务结果
+Demo 阶段完成后，应当已经能够完整表达：
+
+“这是一个围绕真实商业街空间组织商户、活动、路线和消费行为的平台。”
+
+而不是单纯的 CRUD 系统。
+
+第二大阶段：Demo 基础上的持续迭代
+
+本阶段不再要求严格线性开发。
+各方向根据需求、实际产品验证结果和开发成本独立迭代。
+后续能力不得为了“提前架构”而反向侵入现有 Domain。
+
+第一大阶段最终版本注意事项：
+1.已实现 Merchant、Street、User、Activity、ExperienceRoute、Task/Coupon、Recommendation 等核心能力，并完成微信小程序用户侧、Web 商户侧以及基础消费闭环验证。
+2.Demo 阶段商户后台采用演示身份选择机制，不实现完整商户 RBAC；正式部署/产品化前必须补充基于身份认证与权限控制的商户鉴权。
+
+
+
+
+
+
+A. 地图与导航能力增强
+
+目标：从 Demo 空间展示逐步升级到真实城市空间能力。
+
+A1. 真实定位
+
+增加：
+
+用户当前位置
+定位授权
+当前 POI
+附近 POI
+
+只有出现实际用例后，再增加相应 Location 能力抽象。
+
+A2. NavigationRoute
+
+定义：
+
+从当前位置 / POI A 到 POI B 的实际行走路径。
+
+与 ExperienceRoute 严格区分。
+
+ExperienceRoute
+= 推荐去哪
+
+
+NavigationRoute
+= 实际怎么走
+
+NavigationRoute 是导航能力产生的结果模型，不是 Street Domain 的核心业务实体，当前阶段不为此新增 Navigation Domain。
+
+初期实现
+
+可以使用：
+
+街区节点
++
+街区道路
++
+Dijkstra / A*
+
+实现街区内部基础导航。
+
+后续产品化
+
+当 Demo 已验证核心业务，并确实需要：
+
+真实定位
+城市级道路导航
+真实步行路线
+城市级 POI
+实际地图数据
+
+再接入：
+
+高德
+百度
+腾讯
+其他地图 Provider
+
+第三方地图统一放在 Infrastructure / Provider。
+
+技术实现必须遵循可替换原则：
+
+TencentMapClient
+AmapClient
+BaiduMapClient
+
+均不能进入 Domain。
+
+不因为未来可能接入地图 SDK 而提前增加 MapService 等复杂抽象。
+
+B. 混合空间底座与沉浸式体验
+
+目标：实现项目“虚实融合”的核心空间表现。
+
+整体结构：
+
+2D真实空间
++
+核心区域3DGS
++
+店铺360°全景
++
+店铺短视频
++
+Dynamic Spatial Overlay
+B1. 店铺全景 / 短视频
+
+针对特色商户提供：
+
+360°全景
+店内环境浏览
+短视频
+店铺沉浸内容
+
+不要求所有 POI 都具备沉浸式内容。
+
+B2. 核心区域 3DGS
+
+选择：
+
+核心广场 / 标志性区域
+
+进行 3DGS 建模。
+
+3DGS 只负责：
+
+重点区域高保真沉浸式空间展示。
+
+不承担：
+
+整个街区地图
+城市级导航
+POI 数据管理
+推荐逻辑
+
+避免把整个街区都做成 3DGS，控制采集、训练、渲染和前端性能成本。
+
+B3. 空间展示类型
+
+展示层可以根据 POI 的空间体验类型选择：
+
+MAP
+PANORAMA
+VIDEO
+GAUSSIAN_SPLAT
+
+注意：
+
+poiType
+
+与：
+
+SpatialExperienceType
+
+严格区分。
+
+例如：
+
+poiType = STORE
+SpatialExperienceType = PANORAMA
+C. AI 智能化
+
+目标：让 AI 真正参与平台业务，而不仅是内容生成。
+
+C1. 商户端 AI Assistant
+
+实现：
+
+AI 文案生成
+AI 海报生成
+活动文案生成
+优惠内容生成
+“捡漏任务”生成
+
+AI 属于 Infrastructure。
+
+业务层只依赖能力接口，例如：
+
+AIGenerateCopy
+AIGeneratePoster
+TaskGenerationEngine
+
+不得出现：
+
+DeepSeekService
+QwenService
+ChatService
+
+Prompt 统一放置在：
+
+resources/prompts/
+
+模型通过配置切换。
+
+C2. Recommendation AI Enhancement
+
+在 Rule-based Recommendation 已经稳定的基础上增加：
+
+规则候选
+    ↓
+AI增强
+    ↓
+个性化排序 / 推荐理由 / 推荐组合
+    ↓
+RecommendationCard
+
+大模型不直接修改业务状态。
+
+例如：
+
+AI 推荐
+→ 返回推荐结果
+
+
+Application
+→ 创建任务 / 生成通知 / 修改业务状态
+
+业务流程仍由 Application 层控制。
+
+C3. Recommendation V2
+
+后续根据实际数据逐步增加：
+
+用户历史行为
+用户画像
+实时位置
+活动
+商户状态
+Crowd
+消费行为
+路线偏好
+
+进一步升级推荐算法与排序机制。
+
+D. 商业化与运营能力增强
+
+目标：从“能用”逐渐进入“能运营”。
+
+开发内容：
+
+商户动态流量分发
+冷区任务激励
+任务赏金
+商户竞价
+商户 SaaS 数据看板
+转化率统计
+客流来源分析
+积分获取与兑换
+后台运营配置
+Banner
+审核体系
+
+Operation 只负责：
+
+后台运营、审核、配置和管理。
+
+不得把：
+
+推荐
+Task
+积分
+社交
+
+等业务职责塞进 Operation。
+
+E. 动态空间信息与 Crowd
+
+目标：让街区空间从“静态地图”逐步变成“动态空间”。
+
+E1. CrowdStatus
+明确：
+
+StoreStatus = 门店管理状态
+BusinessStatus = 营业状态
+CrowdStatus = 客流/拥挤状态
+
+先建立标准化状态，例如：
+
+QUIET
+NORMAL
+BUSY
+CROWDED
+
+数据来源逐步演进。
+
+第一阶段
+Mock
++
+商户主动上报
++
+后台手工配置
+第二阶段
+平台用户行为
++
+消费数据
++
+活动数据
++
+任务数据
+后续产品化
+实时热力
++
+实时客流
++
+传感器
++
+其他外部数据
+E2. Dynamic Spatial Overlay
+
+将动态状态叠加在空间底座之上。
+
+例如：
+
+😌 空闲
+🙂 正常
+😤 排队
+🔥 热门
+
+Overlay 不属于 Street Domain 本身，而属于空间展示能力。
+
+数据状态与视觉表现解耦：Overlay 表达的是数据状态（例如 CrowdStatus = BUSY），
+前端自行决定视觉形式（例如显示 😤 正在排队），同一状态可按场景采用不同表现。
+
+可以应用于：
+
+2D地图
+3DGS
+全景
+其他空间展示
+
+未来除 Crowd 外还可以承载：
+
+活动
+NPC
+捡漏任务
+推荐标记
+店铺状态
+彩蛋
+
+因此不要将其设计为“喧闹指数专属 UI”。
+
+F. NPC 智能体与任务派发
+
+目标：增强探索感和实时互动。
+
+开发内容：
+
+NPC 空间位置
+NPC 触发区域
+条件触发
+任务派发
+惊喜事件
+捡漏任务推送
+
+NPC 本质上是：
+
+空间中的任务 / 内容派发器。
+
+任务本身仍属于 Task Domain。
+
+NPC 不能直接修改 Task 数据，而由 Application 层协调：
+
+用户进入触发区域
+→ NPC Trigger
+→ Application
+→ 查询可用 Task
+→ 返回任务
+→ 用户执行 Task
+G. Social——数字留言瓶与街区记忆
+
+目标：建立不依赖价格优惠的情感与社交传播。
+
+开发内容：
+
+数字留言瓶
+点位留言
+捡起留言瓶
+评论
+点赞
+分享
+打卡
+街区记忆地图
+
+位置只是 Social 内容属性。
+
+不要因为 Social Content 带有坐标，就把 Social 业务移动到 Street Domain。
+
+H. 后期基础设施增强
+
+只有当业务真实需要时再增加：
+
+Redis
+WebSocket
+消息队列
+实时数据流
+空间索引
+GeoHash
+复杂缓存
+高级推荐基础设施
+对象存储
+第三方地图服务
+
+所有基础设施升级都必须遵循：
+
+当前业务需要 → 引入对应技术 → 保持 Domain / Application 稳定。
+
+不得为了“以后可能用到”提前建设复杂基础设施。

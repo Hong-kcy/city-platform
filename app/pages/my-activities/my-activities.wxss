@@ -1,0 +1,17 @@
+.activity-card {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+}
+
+.cover {
+  width: 200rpx;
+  height: 200rpx;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+.info {
+  padding: 24rpx;
+  flex: 1;
+}

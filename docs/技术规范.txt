@@ -1,0 +1,587 @@
+城市商业街区平台开发规范（V2）
+第一章 开发原则（Development Principles）
+
+1.1 单体模块化（Modular Monolith）
+
+项目采用 单体模块化（Modular Monolith） 架构。
+
+整个项目保持为一个 Spring Boot 工程，不采用 Maven 多模块，也不提前拆分微服务。
+
+各业务域以 Package 形式组织，当未来需要拆分微服务时，以业务域 Package 为单位迁移。
+
+项目统一采用根包：
+
+com.cityplatform
+
+例如：
+
+com.cityplatform.user
+com.cityplatform.merchant
+com.cityplatform.activity
+com.cityplatform.task
+com.cityplatform.street
+...
+1.2 高内聚、低耦合
+
+每个业务域负责自身职责，不承担其它业务域职责。
+
+业务域之间不得直接依赖业务实现。
+
+所有跨域流程均由 Application 层负责协调。
+
+领域层只负责业务规则。所需数据通过 Repository 接口获取，由 Infrastructure 提供实现。领域层不关心数据存储细节。
+
+1.3 单向依赖原则
+
+整个项目遵循严格单向依赖。
+
+Controller
+        │
+        ▼
+Application
+        │
+        ▼
+Domain
+        │
+        ▼
+Repository Interface
+        │
+        ▼
+Infrastructure
+
+规定：
+Controller不能绕过 Application 直接操作 Domain，只能调用 Application
+Infrastructure 可以依赖 Domain 中定义的类型，以实现基础设施适配。
+Domain 不得依赖 Infrastructure。
+Application 不得直接依赖 Infrastructure 的具体实现。
+Infrastructure 不得反向调用 Application。
+禁止Domain → Application
+禁止Domain → 第三方 SDK
+
+1.4 技术实现可替换原则
+
+允许替换技术实现，例如：
+
+DeepSeek → Qwen
+本地存储 → 腾讯 COS
+MySQL → PostgreSQL
+腾讯地图 → 高德地图
+
+技术替换时，不应修改 Domain 与 Application 层接口。
+
+业务需求变化允许修改业务逻辑。
+
+遵循：
+
+当前需要，适度抽象，不为了未来可能永远不会发生的技术替换增加复杂度。
+
+第二章 项目分层规范
+
+每个业务域统一采用四层结构：
+
+controller/
+application/
+domain/
+infrastructure/
+Controller
+
+负责：
+
+接收请求
+参数校验
+调用 Application
+返回结果
+
+不得编写业务逻辑。
+
+Application
+
+负责：
+
+用例编排
+协调跨域流程
+调用多个 Repository
+调用多个 Domain
+调用 Platform Services
+管理事务
+跨域聚合查询
+
+查询结果统一返回 ReadModel。
+
+Domain 层不感知 ReadModel。
+
+Application 可以调用多个 Application 完成同一请求链路的编排，但不得形成循环依赖。
+
+Domain
+
+负责：
+
+业务规则。
+
+例如：
+
+推荐策略
+NPC任务规则
+路线生成规则
+积分计算规则
+
+Domain 不负责：
+
+查询数据库
+调第三方接口
+开启事务
+HTTP 请求
+DTO / ReadModel 转换
+Infrastructure
+
+负责：
+
+数据库
+AI
+地图 SDK
+微信 SDK
+文件存储
+Redis（后期）
+第三方接口实现
+
+所有技术实现均放在 Infrastructure。
+
+第三章 业务域划分
+
+系统包含以下业务域：
+
+User
+Merchant
+Activity
+Task
+Street
+Recommendation
+Social
+Operation
+
+另外：
+
+Platform 为基础平台能力，不属于业务域。
+
+User
+
+负责：
+
+用户信息
+用户画像
+积分
+消息偏好
+Merchant
+
+负责：
+
+商户
+门店
+营业状态
+优惠
+Activity
+
+负责：
+
+活动
+报名
+订阅
+活动生命周期
+Task
+
+负责：
+
+签到任务
+捡漏任务
+奖励
+完成状态
+
+Task 可由 Activity、Recommendation 或运营策略生成，但拥有独立生命周期。
+
+Street
+
+负责街区空间业务数据。
+
+包括：
+
+StreetArea（街区）
+POI（兴趣点，含 latitude/longitude）
+StreetMoment（后续）
+ExperienceRoute 作为独立的业务能力，由 Recommendation 域负责，不属于 Street Domain。
+地图 SDK 属于 Infrastructure / Platform，不属于 Street Domain。
+
+Demo 阶段不强制接入第三方地图 SDK，真实 POI 的 latitude/longitude 保留，
+但地图展示采用固定真实街区数据或预制空间数据，第三方地图服务（高德/百度等）
+作为后续可替换实现，经 Infrastructure/Provider 接入。
+demo阶段目标是验证完整产品闭环而非实现地图基础设施，因此不要求实时地图服务、
+城市级地图、实时定位与城市级导航。
+
+Route 区分两种概念，不得混为一个 Domain 对象：
+
+ExperienceRoute（主题探索路线）：业务领域路线，由 POI 按顺序组成，
+回答"推荐用户去哪里"。例如"闺蜜出片半日游"。由 Recommendation 生成/选择。
+
+NavigationRoute（实际行走路径）：从当前位置/POI A 到 POI B 的实际路径，
+回答"用户怎么过去"。由 Navigation 计算。
+
+NavigationRoute 是导航能力产生的结果模型，不是 Street Domain 必须存在的核心业务实体。
+Demo 阶段可使用街区内部简化路网（Dijkstra/A*）计算；未来由高德/百度等地图 Provider
+提供实际路线。当前阶段不为此新增 Navigation Domain。
+
+ExperienceRoute 只引用 POI，不关心 POI 是 2D、3DGS、全景还是视频。
+展示层根据 POI 的空间体验类型决定进入哪种空间形态。
+
+POI 空间体验类型（展示层概念，区别于 poiType 业务类型）：
+
+poiType（业务类型）：STORE / SCENIC / FACILITY / OTHER
+SpatialExperienceType（空间体验类型，展示层）：MAP / PANORAMA / VIDEO / GAUSSIAN_SPLAT
+
+两者不混同：一个 POI 的 poiType=STORE 时，experienceType 可以是 PANORAMA。
+
+demo阶段不为此提前修改数据库结构；待真正实现 3DGS / Panorama / Video 时
+再增加对应字段或模型。
+
+Recommendation
+
+负责：
+
+推荐生成
+推荐排序
+推荐策略
+推荐结果
+
+Recommendation 仅生成建议，不直接修改业务状态。
+
+Social
+
+负责：
+
+留言瓶
+评论
+点赞
+分享
+打卡
+关注
+
+位置只是社交内容属性，不改变领域归属。
+
+Operation
+
+负责：
+
+后台运营
+Banner
+审核
+配置
+后台管理
+
+Operation 不承担推荐、任务、积分等业务职责。
+
+第四章 Platform Services
+
+Platform 提供公共基础能力。
+
+包括：
+
+Authentication
+Storage
+Message
+AI
+Map
+Schedule
+Log
+
+业务域统一调用 Platform Service。
+
+不得直接调用第三方 SDK。
+
+说明：Map / Location 属于未来 Platform 能力；Demo 阶段不实现具体 MapService / LocationService。真实定位、城市级地图和导航仅在实际需求出现后，经 Infrastructure / Provider 接入。
+遵循 1.4 技术实现可替换原则（腾讯地图 ↔ 高德地图可替换）。
+
+例如：
+
+Recommendation
+        │
+        ▼
+AIService
+        │
+        ▼
+DeepSeekClient
+第五章 AI 设计规范
+
+AI 属于 Infrastructure。
+
+AI 不是业务域。
+
+业务仅依赖能力接口，例如：
+
+RecommendationEngine
+DialogueEngine
+PosterEngine
+VisionEngine
+
+禁止出现：
+
+DeepSeekService
+ChatService
+
+业务代码不得感知具体模型。
+
+模型通过配置切换：
+
+ai.provider=deepseek
+
+Prompt 模板统一放置：
+
+resources/prompts/
+
+当前阶段不引入 PromptRenderer 等额外抽象。
+
+第六章 文件存储规范
+
+统一采用：
+
+StoredFile
+
+包含：
+
+id
+path
+url
+mimeType
+size
+provider
+createdAt
+
+当前：
+
+Local Storage
+
+未来：
+
+COS、OSS、MinIO
+
+业务无需修改。
+
+文件上传统一通过 Platform Storage 能力对外暴露（POST /api/files，multipart/form-data），
+仅 Storage Controller 处理 MultipartFile，业务域 Controller / Application / Domain 不得出现文件处理代码。
+本地存储文件通过 /uploads/** 静态资源映射对外可访问，返回 URL 可被浏览器 / 小程序直接请求。
+
+第七章 消息规范
+
+统一采用：
+
+MessageService
+
+业务只声明：
+
+发送什么消息。
+
+MessageService 根据：
+
+消息类型
+用户消息偏好
+可用发送渠道
+
+自动决定发送方式。
+
+例如：
+
+微信订阅消息
+小程序站内通知
+系统消息
+
+业务层不得关心具体发送渠道。
+
+第八章 Repository 规范
+
+Repository 仅定义领域访问接口，例如：
+
+insert()
+
+update()
+
+findById()
+
+写方法统一采用 insert / update 分离，命名体现明确业务语义，不使用含义模糊的 save()。
+删除统一通过状态字段软删除表达，不提供物理 delete()。
+
+SQL 放在：
+
+Mapper
+RepositoryImpl
+Infrastructure
+
+Repository 不承担 SQL 编写职责。
+
+第九章 查询模型（Read Model）
+
+跨域聚合查询统一返回：
+
+ReadModel
+QueryModel
+
+例如：
+
+RecommendationCard
+StoreSummary
+ActivityDetail
+StreetOverview
+
+ReadModel：
+
+只读
+不包含业务逻辑
+不回写数据库
+不进入 Domain
+第十章 外部服务规范
+
+所有第三方 SDK：
+
+统一封装为：
+
+XXXClient
+
+例如：
+
+TencentMapClient
+WechatClient
+DeepSeekClient
+
+业务统一调用：
+
+MapService
+MessageService
+AIService
+
+不得直接依赖 SDK。
+
+第十一章 编码规范（Code Convention）
+包结构
+
+统一采用：
+
+controller
+application
+domain
+infrastructure
+
+禁止新增职责不明确的包，例如：
+
+manager
+helper
+common
+util（承载业务逻辑）
+命名规范
+
+统一采用：
+
+XXXController
+XXXApplicationService
+XXXDomainService
+XXXRepository
+XXXReadModel
+XXXClient
+
+领域模型优先使用准确业务名词（如 Merchant、Store、StreetArea、POI），
+Entity 后缀并非强制。
+
+避免使用职责不清晰的命名。
+
+异常规范
+
+统一业务异常体系。
+
+禁止直接向上抛出：
+
+数据库异常
+网络异常
+SDK 异常
+事务规范
+
+事务边界统一放在：
+
+Application 层。
+
+Domain 层禁止开启事务。
+
+DTO 转换规范
+
+DTO、ReadModel、Entity 转换统一放在：
+
+Assembler（或 Mapper）中。
+
+Controller 与 Domain 不负责对象转换。
+
+日志规范
+
+记录：
+
+关键业务事件
+异常信息
+外部接口调用失败
+
+禁止：
+
+输出调试日志
+输出密码
+Token
+用户隐私
+配置规范
+
+所有环境配置统一放入配置文件。
+
+避免为了未来可能发生的需求提前增加系统复杂度。
+
+第十二章 数据库引用与约束策略
+
+外键（Foreign Key）说明：
+
+数据库中的 ID 引用（如 POI.storeId、Task.sourceId、UserCoupon.couponId、
+Activity.streetAreaId、experience_route_item.poiId）
+并不意味着所有 ID 引用都必须成为数据库层面的物理外键。
+
+本项目强调跨域低耦合，因此采用如下引用策略：
+
+1. 同一业务域内的强归属关系（如 store.merchant_id）可以考虑物理外键；
+   Demo 阶段为简化部署当前未添加，不作为强制要求。
+
+2. 跨域引用统一采用 ID 引用 + Application 层校验：
+   存在性 / 合法性校验由 Application 层通过目标域 Repository 接口完成，
+   Domain 之间不建立物理耦合，避免级联影响与跨域迁移困难。
+
+3. 唯一性与状态一致性通过 数据库约束 + Application 校验 双重保证：
+   例如 user_coupon 的 UNIQUE(user_id, coupon_id) 配合领取前校验，
+   并发冲突由 DuplicateKeyException 转为业务错误兜底；
+   核销 / 任务完成采用"先校验 + 条件更新"防止并发重复。
+
+该策略与分层架构一致：Domain 仅维护业务规则，跨域协调在 Application 层完成，
+是 Demo 阶段经过验证的成熟取舍，不视为"缺少外键"的缺陷。
+
+第十三章 详情接口的公开 / 管理视图约定
+
+详情查询接口区分两种视图语义（Demo 阶段通过显式 management 参数区分，非普通公开可自由切换的能力）：
+
+用户公开视图（默认，management=false）：
+仅返回当前有效内容（PUBLISHED / ACTIVE），
+未发布、已下线、已停用、未启用的对象按不存在处理（404）。
+小程序用户端一律不传 management 参数。
+
+管理视图（management=true）：
+可查看全部状态（含 DRAFT / OFFLINE / INACTIVE）。
+
+安全约定（当前已知的最需留意的安全限制）：
+
+Demo 阶段管理视图以显式参数区分，但该参数仅供 admin 管理端内部调用，
+用户端不得使用 management=true。此为阶段性的安全弱化（任何人可伪造该参数
+查看非公开内容），属于已知风险而非设计目标。
+待正式身份认证与权限控制接入后，改为基于登录身份判断管理视图，
+management 参数将由服务端身份判定取代，不再信任前端传参
+（见《流程.txt》第一大阶段最终版本注意事项第 2 条 Scope Decision）。
+
+Demo 数据重置方式（不引入 migration / environment framework）：
+
+正式演示前如需干净种子数据：
+重置数据库 -> 执行 schema.sql -> 执行 data.sql。
+后续如有需要，可增加一个简单的 demo-reset.sql 作为开发环境初始化脚本，
+不为此提前引入复杂框架。

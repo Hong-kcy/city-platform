@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.user.infrastructure.mapper.UserMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.user.domain.User"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user` (openid, unionid, nickname, avatar_file_id,
+                            preferred_activity_types, preferred_experience_types,
+                            activity_reminder_enabled, system_notification_enabled,
+                            points, status, created_at, updated_at)
+        VALUES (#{openid}, #{unionid}, #{nickname}, #{avatarFileId},
+                #{preferredActivityTypes}, #{preferredExperienceTypes},
+                #{activityReminderEnabled}, #{systemNotificationEnabled},
+                #{points}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.user.domain.User">
+        UPDATE `user`
+        SET unionid=#{unionid},
+            nickname=#{nickname},
+            avatar_file_id=#{avatarFileId},
+            preferred_activity_types=#{preferredActivityTypes},
+            preferred_experience_types=#{preferredExperienceTypes},
+            activity_reminder_enabled=#{activityReminderEnabled},
+            system_notification_enabled=#{systemNotificationEnabled},
+            points=#{points},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.user.domain.User">
+        SELECT id, openid, unionid, nickname, avatar_file_id,
+               preferred_activity_types, preferred_experience_types,
+               activity_reminder_enabled, system_notification_enabled,
+               points, status, created_at, updated_at
+        FROM `user`
+        WHERE id=#{id}
+    </select>
+
+    <select id="selectByOpenid" resultType="com.cityplatform.user.domain.User">
+        SELECT id, openid, unionid, nickname, avatar_file_id,
+               preferred_activity_types, preferred_experience_types,
+               activity_reminder_enabled, system_notification_enabled,
+               points, status, created_at, updated_at
+        FROM `user`
+        WHERE openid=#{openid}
+    </select>
+</mapper>

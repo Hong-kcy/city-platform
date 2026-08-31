@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.street.infrastructure.mapper.POIMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.street.domain.POI"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO poi (street_area_id, name, poi_type, store_id, longitude, latitude,
+                         description, status, created_at, updated_at)
+        VALUES (#{streetAreaId}, #{name}, #{poiType}, #{storeId}, #{longitude}, #{latitude},
+                #{description}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.street.domain.POI">
+        UPDATE poi
+        SET name=#{name},
+            poi_type=#{poiType},
+            store_id=#{storeId},
+            longitude=#{longitude},
+            latitude=#{latitude},
+            description=#{description},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.street.domain.POI">
+        SELECT id, street_area_id, name, poi_type, store_id, longitude, latitude,
+               description, status, created_at, updated_at
+        FROM poi
+        WHERE id=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.task.infrastructure.mapper.TaskMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.task.domain.Task"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO task (title, description, task_type, source_type, source_id, store_id,
+                          reward_type, reward_value, start_at, end_at, status, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{taskType}, #{sourceType}, #{sourceId}, #{storeId},
+                #{rewardType}, #{rewardValue}, #{startAt}, #{endAt}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.task.domain.Task">
+        UPDATE task
+        SET title=#{title},
+            description=#{description},
+            task_type=#{taskType},
+            source_type=#{sourceType},
+            source_id=#{sourceId},
+            store_id=#{storeId},
+            reward_type=#{rewardType},
+            reward_value=#{rewardValue},
+            start_at=#{startAt},
+            end_at=#{endAt},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.task.domain.Task">
+        SELECT id, title, description, task_type, source_type, source_id, store_id,
+               reward_type, reward_value, start_at, end_at, status, created_at, updated_at
+        FROM task
+        WHERE id=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.recommendation.infrastructure.mapper.RecommendationQueryMapper">
+
+    <!-- 门店候选：营业中硬过滤(business_status=OPEN)，街区过滤经 ACTIVE STORE 类型 POI 关联，
+         has_coupon 表示当前存在生效期内优惠券（推荐仅提示，领券由 Coupon 域完成） -->
+    <select id="selectStoreCandidates"
+            resultType="com.cityplatform.recommendation.application.readmodel.StoreCandidateReadModel">
+        SELECT
+            s.id,
+            s.name,
+            m.type AS merchantType,
+            s.longitude,
+            s.latitude,
+            f.url  AS coverImageUrl,
+            EXISTS (
+                SELECT 1 FROM coupon c
+                WHERE c.store_id = s.id
+                  AND c.status = 'ACTIVE'
+                  AND c.valid_from &lt;= NOW()
+                  AND c.valid_to &gt;= NOW()
+            ) AS hasCoupon
+        FROM store s
+        INNER JOIN merchant m ON s.merchant_id = m.id
+        LEFT JOIN stored_file f ON s.cover_image_file_id = f.id
+        WHERE s.status = 'ACTIVE'
+          AND s.business_status = 'OPEN'
+          <if test="streetAreaId != null">
+          AND EXISTS (
+              SELECT 1 FROM poi p
+              WHERE p.store_id = s.id
+                AND p.street_area_id = #{streetAreaId}
+                AND p.poi_type = 'STORE'
+                AND p.status = 'ACTIVE'
+          )
+          </if>
+        ORDER BY s.id ASC
+        LIMIT 50
+    </select>
+
+    <!-- 活动候选：已发布且未结束（已结束活动不进入推荐） -->
+    <select id="selectActivityCandidates"
+            resultType="com.cityplatform.recommendation.application.readmodel.ActivityCandidateReadModel">
+        SELECT
+            a.id,
+            a.title,
+            a.activity_type AS activityType,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            f.url AS coverImageUrl
+        FROM activity a
+        LEFT JOIN stored_file f ON a.cover_file_id = f.id
+        WHERE a.status = 'PUBLISHED'
+          AND a.end_time &gt;= NOW()
+          <if test="streetAreaId != null">
+          AND a.street_area_id = #{streetAreaId}
+          </if>
+        ORDER BY a.start_time ASC
+        LIMIT 50
+    </select>
+
+    <!-- 路线候选：启用中 -->
+    <select id="selectRouteCandidates"
+            resultType="com.cityplatform.recommendation.application.readmodel.RouteCandidateReadModel">
+        SELECT
+            r.id,
+            r.name,
+            r.theme,
+            r.estimated_duration AS estimatedDuration
+        FROM experience_route r
+        WHERE r.status = 'ACTIVE'
+          <if test="streetAreaId != null">
+          AND r.street_area_id = #{streetAreaId}
+          </if>
+        ORDER BY r.id ASC
+        LIMIT 50
+    </select>
+
+    <!-- 街区中心坐标（距离锚点） -->
+    <select id="selectStreetAreaCenter"
+            resultType="com.cityplatform.recommendation.application.readmodel.StreetAreaLocationReadModel">
+        SELECT
+            sa.id,
+            sa.longitude,
+            sa.latitude
+        FROM street_area sa
+        WHERE sa.id = #{streetAreaId}
+          AND sa.status = 'ACTIVE'
+    </select>
+</mapper>

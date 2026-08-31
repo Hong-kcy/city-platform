@@ -1,0 +1,25 @@
+<view class="container" wx:if="{{detail}}">
+  <view class="card">
+    <view class="coupon-hero">
+      <view class="discount">{{detail.discountText}}</view>
+      <view class="card-title">{{detail.name}}</view>
+      <view class="card-sub">{{detail.storeName}}</view>
+      <view class="tag status-tag">{{detail.statusText}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text class="label">有效期</text><text class="value">{{detail.validFrom}} ~ {{detail.validTo}}</text></view>
+    <view class="row"><text class="label">领取时间</text><text class="value">{{detail.claimedAt}}</text></view>
+    <view class="row" wx:if="{{detail.redeemedAt}}"><text class="label">核销时间</text><text class="value">{{detail.redeemedAt}}</text></view>
+    <view class="row" wx:if="{{detail.description}}"><text class="label">使用说明</text><text class="value">{{detail.description}}</text></view>
+  </view>
+
+  <!-- 可使用状态：展示核销码与二维码 -->
+  <view class="card" wx:if="{{detail.redeemCode}}">
+    <view class="card-title">核销码</view>
+    <view class="card-sub">到店出示以下核销码或二维码，由店员核销</view>
+    <view class="code-text">{{detail.redeemCode}}</view>
+    <canvas canvas-id="redeemCanvas" class="qr-canvas"></canvas>
+  </view>
+</view>

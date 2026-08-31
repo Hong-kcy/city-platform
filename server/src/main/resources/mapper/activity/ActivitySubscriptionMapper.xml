@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.activity.infrastructure.mapper.ActivitySubscriptionMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.activity.domain.ActivitySubscription"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO activity_subscription (activity_id, user_id, status, created_at, updated_at)
+        VALUES (#{activityId}, #{userId}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.activity.domain.ActivitySubscription">
+        UPDATE activity_subscription
+        SET status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectByUserIdAndActivityId"
+            resultType="com.cityplatform.activity.domain.ActivitySubscription">
+        SELECT id, activity_id, user_id, status, created_at, updated_at
+        FROM activity_subscription
+        WHERE user_id=#{userId} AND activity_id=#{activityId}
+    </select>
+</mapper>

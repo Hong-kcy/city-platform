@@ -1,0 +1,32 @@
+# === Java / Maven (server) ===
+server/target/
+server/uploads/
+*.class
+*.log
+
+# === 微信小程序 (app) ===
+app/node_modules/
+app/miniprogram_npm/
+
+# === Web 管理端 (admin) ===
+admin/node_modules/
+admin/dist/
+admin/.vite/
+
+# === IDE / 系统 ===
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === 本地环境 / 密钥（严禁提交） ===
+.env
+.env.*
+*.local
+
+# === 本地敏感备份（含真实数据库密码等，仅本机保留） ===
+/1/
+
+# === 微信开发者工具私有配置（本机调试偏好） ===
+app/project.private.config.json

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.route.infrastructure.mapper.ExperienceRouteMapper">
+
+    <insert id="insert" parameterType="com.cityplatform.route.domain.ExperienceRoute"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO experience_route (street_area_id, name, theme, description,
+                                      estimated_duration, status, created_at, updated_at)
+        VALUES (#{streetAreaId}, #{name}, #{theme}, #{description},
+                #{estimatedDuration}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.cityplatform.route.domain.ExperienceRoute">
+        UPDATE experience_route
+        SET street_area_id=#{streetAreaId},
+            name=#{name},
+            theme=#{theme},
+            description=#{description},
+            estimated_duration=#{estimatedDuration},
+            status=#{status},
+            updated_at=#{updatedAt}
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectById" resultType="com.cityplatform.route.domain.ExperienceRoute">
+        SELECT id, street_area_id, name, theme, description,
+               estimated_duration, status, created_at, updated_at
+        FROM experience_route
+        WHERE id=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cityplatform.activity.infrastructure.mapper.ActivitySubscriptionQueryMapper">
+
+    <select id="selectByUserIdAndActivityId"
+            resultType="com.cityplatform.activity.application.readmodel.ActivitySubscriptionReadModel">
+        SELECT activity_id, user_id, status, created_at
+        FROM activity_subscription
+        WHERE user_id=#{userId} AND activity_id=#{activityId}
+    </select>
+
+    <!-- 我的活动：生效订阅 JOIN 活动/街区/封面，含已下线活动(activity_status 供前端区分) -->
+    <select id="selectMySubscriptions"
+            resultType="com.cityplatform.activity.application.readmodel.MyActivitySubscription">
+        SELECT s.id AS subscription_id,
+               s.activity_id,
+               a.title,
+               a.summary,
+               COALESCE(sf.url, '/static/default-cover.svg') AS cover_image_url,
+               a.activity_type,
+               a.start_time,
+               a.end_time,
+               a.status AS activity_status,
+               sa.name AS street_area_name,
+               s.status AS subscription_status,
+               s.created_at AS subscribed_at
+        FROM activity_subscription s
+        JOIN activity a ON s.activity_id = a.id
+        LEFT JOIN street_area sa ON a.street_area_id = sa.id
+        LEFT JOIN stored_file sf ON a.cover_file_id = sf.id
+        WHERE s.user_id=#{userId} AND s.status = 'ACTIVE'
+        ORDER BY s.created_at DESC, s.id DESC
+        LIMIT #{page.offset}, #{page.size}
+    </select>
+
+    <select id="countMySubscriptions" resultType="long">
+        SELECT COUNT(*)
+        FROM activity_subscription s
+        WHERE s.user_id=#{userId} AND s.status = 'ACTIVE'
+    </select>
+</mapper>

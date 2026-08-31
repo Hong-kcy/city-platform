@@ -1,0 +1,21 @@
+<view class="container">
+  <view wx:if="{{tasks.length === 0}}" class="empty">暂无参与的任务，去任务列表看看吧</view>
+
+  <view
+    wx:for="{{tasks}}"
+    wx:key="id"
+    class="card task-card"
+    bindtap="openDetail"
+    data-id="{{item.id}}"
+  >
+    <view class="task-body">
+      <view class="card-title">{{item.title}}</view>
+      <view class="card-sub">{{item.storeName || '全街区'}}</view>
+      <view class="card-sub">参与于 {{item.joinedAt}}</view>
+    </view>
+    <view class="right">
+      <view class="status {{item.taskStatus === 'COMPLETED' ? 'status-done' : 'status-ongoing'}}">{{item.statusText}}</view>
+      <view class="reward-mini">+{{item.rewardValue}}积分</view>
+    </view>
+  </view>
+</view>
