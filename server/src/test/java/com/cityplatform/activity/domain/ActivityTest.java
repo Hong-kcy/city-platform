@@ -20,8 +20,8 @@ class ActivityTest {
     private static final LocalDateTime END = LocalDateTime.of(2026, 9, 12, 22, 0);
 
     private Activity newDraftActivity() {
-        return Activity.create(101L, "淮河路夜市美食节", "摘要", "描述", null,
-                ActivityType.FESTIVAL, START, END, "淮河路步行街全段", null);
+        return Activity.create(101L, "梧田老街夜市美食节", "摘要", "描述", null,
+                ActivityType.FESTIVAL, START, END, "梧田老街全段", null);
     }
 
     @Test

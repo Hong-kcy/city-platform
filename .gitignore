@@ -25,8 +25,5 @@ Thumbs.db
 .env.*
 *.local
 
-# === 本地敏感备份（含真实数据库密码等，仅本机保留） ===
-/1/
-
 # === 微信开发者工具私有配置（本机调试偏好） ===
 app/project.private.config.json

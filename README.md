@@ -1,6 +1,6 @@
 # city-platform 城市商业街区虚实融合数字消费平台
 
-围绕真实商业街空间（合肥淮河路步行街 Demo 场景）组织商户、活动、路线和消费行为的平台。
+围绕真实商业街空间（温州梧田老街 Demo 场景）组织商户、活动、路线和消费行为的平台。
 当前处于 **Demo MVP 已验收** 状态，覆盖：Platform、Merchant、Street、User、Activity、ExperienceRoute、Task/Coupon、Recommendation。
 
 ## 仓库结构
@@ -11,7 +11,6 @@ city-platform/
 ├── app/       # 微信小程序用户端（原生小程序）
 ├── admin/     # Web 商户/运营管理端（Vue 3 + Vite）
 ├── docs/      # 规范文档（流程.txt / 技术规范.txt / 功能大纲.txt）
-├── 1/         # 本机敏感配置备份（不入库，见 .gitignore）
 ├── .gitignore
 ├── README.md
 └── CONTRIBUTING.md
@@ -45,14 +44,14 @@ city-platform/
 ## 快速开始（微信小程序用户端）
 
 1. 微信开发者工具导入 `app/` 目录。
-2. 本机模拟器调试时 `app/config.js` / `app.js` 中 baseUrl 指向 `http://localhost:8080`；真机调试需改为局域网 IP 并放行 8080 端口。
+2. 小程序本身不占用端口，通过 `app/config.js` 中的 `API_BASE_URL` 请求后端接口；本机模拟器调试时保持 `http://localhost:8080`（即后端端口），真机调试需改为局域网 IP 并放行后端 8080 端口。
 
 ## 快速开始（Web 管理端）
 
 ```powershell
 cd admin
 npm install
-npm run dev     # http://localhost:5173，已代理 /api、/uploads、/static 到 8080
+npm run dev     # http://localhost:5173，已代理 /api、/uploads、/static 到后端 8080
 ```
 
 Demo 阶段商户后台为演示身份选择机制（未实现完整 RBAC），见 docs/流程.txt 相关 Scope Decision。

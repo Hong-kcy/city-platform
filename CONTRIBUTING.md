@@ -17,7 +17,7 @@ Controller → Application → Domain → Repository Interface → Infrastructur
 
 - Migration 位于 `server/src/main/resources/db/migration/`：
   - `V1__init_schema.sql` 建表
-  - `V2__seed_data.sql` 种子数据（淮河路步行街 101 段 Demo 数据）
+  - `V2__seed_data.sql` 种子数据（温州梧田老街 101 段 Demo 数据）
 - **后续 schema 变更一律新增 `V3__xxx.sql`，禁止修改已发布的 migration 文件**，避免多人开发各自本地手改数据库。
 - 种子数据保持幂等（`INSERT IGNORE`），固定使用 101 段 ID；业务测试数据请勿写入 migration。
 - 唯一性/状态一致性通过数据库约束 + Application 校验双重保证；跨域 ID 引用不加物理外键（设计取舍，见技术规范第十二章）。
@@ -26,7 +26,6 @@ Controller → Application → Domain → Repository Interface → Infrastructur
 ## 敏感信息
 
 - 仓库内只保留配置格式（环境变量占位），严禁提交真实密码 / AppSecret / Token。
-- 本机真实凭证备份在根目录 `1/`（已被 .gitignore 排除）。
 - AppSecret 只从服务端环境变量 `WECHAT_MINI_APP_SECRET` 读取，绝不下发前端或硬编码。
 
 ## 目录职责
