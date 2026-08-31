@@ -1,4 +1,4 @@
-# city-platform 城市商业街区虚实融合数字消费平台
+# citystreet-platform 城市商业街区虚实融合数字消费平台
 
 围绕真实商业街空间（温州梧田老街 Demo 场景）组织商户、活动、路线和消费行为的平台。
 当前处于 **Demo MVP 已验收** 状态，覆盖：Platform、Merchant、Street、User、Activity、ExperienceRoute、Task/Coupon、Recommendation。
